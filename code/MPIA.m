@@ -16,6 +16,7 @@ function [best_x, best_f, conv_best, conv_avg, migration_log] = MPIA(D, N_total,
     migrate_T    = getField(params, 'migrate_T',    10);
     migrate_M    = getField(params, 'migrate_M',    2);
 
+    obj_func = getField(params, 'obj_func', @Rastrigin);
     N_sub = floor(N_total / K);
     lb = bounds(1);  ub = bounds(2);
 
@@ -24,7 +25,7 @@ function [best_x, best_f, conv_best, conv_avg, migration_log] = MPIA(D, N_total,
     sub_best_x = cell(K,1);  sub_best_f = zeros(K,1);
     for k = 1:K
         sub_pop{k} = lb + (ub - lb) * rand(N_sub, D);
-        sub_fitness{k} = Rastrigin(sub_pop{k});
+        sub_fitness{k} = obj_func(sub_pop{k});
         [sub_best_f(k), idx] = min(sub_fitness{k});
         sub_best_x{k} = sub_pop{k}(idx, :);
     end
@@ -72,7 +73,7 @@ function [best_x, best_f, conv_best, conv_avg, migration_log] = MPIA(D, N_total,
             end
 
             % 评估 + 家族选择 + 精英保留 + 随机更新
-            clone_fit = Rastrigin(mutated_k);
+            clone_fit = obj_func(mutated_k);
             new_pop_k = zeros(Nk, D);  new_fit_k = zeros(Nk, 1);  ptr = 1;
             for i = 1:Nk
                 n = clone_cnt(i);
@@ -90,7 +91,7 @@ function [best_x, best_f, conv_best, conv_avg, migration_log] = MPIA(D, N_total,
                 [~, wi] = sort(new_fit_k, 'descend');
                 for j = 1:n_rep
                     new_pop_k(wi(j),:) = lb+(ub-lb)*rand(1,D);
-                    new_fit_k(wi(j)) = Rastrigin(new_pop_k(wi(j),:));
+                    new_fit_k(wi(j)) = obj_func(new_pop_k(wi(j),:));
                 end
             end
             sub_pop{k} = new_pop_k;  sub_fitness{k} = new_fit_k;
@@ -111,9 +112,9 @@ function [best_x, best_f, conv_best, conv_avg, migration_log] = MPIA(D, N_total,
                 [~, wi] = sort(sub_fitness{dst}, 'descend');
                 for m = 1:migrate_M
                     sub_pop{dst}(wi(m), :) = incoming(m, :);
-                    sub_fitness{dst}(wi(m)) = Rastrigin(incoming(m, :));
+                    sub_fitness{dst}(wi(m)) = obj_func(incoming(m, :));
                 end
-                migration_log(end+1,:) = [t, k, dst, Rastrigin(incoming(1,:))]; %#ok<AGROW>
+                migration_log(end+1,:) = [t, k, dst, obj_func(incoming(1,:))]; %#ok<AGROW>
             end
             for k = 1:K
                 [sub_best_f(k), idx] = min(sub_fitness{k});

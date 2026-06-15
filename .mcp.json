@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "matlab": {
+      "type": "stdio",
+      "command": "C:/Users/JACK/.claude/mcp-servers/matlab-mcp-core-server-win64.exe",
+      "args": [
+        "--matlab-root=D:/Program Files/MATLAB/R2025a",
+        "--initial-working-folder=d:/PYTHON/zhinengsuanfa/大作业_多种群免疫算法/code"
+      ]
+    }
+  }
+}

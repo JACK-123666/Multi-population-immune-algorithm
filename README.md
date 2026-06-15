@@ -84,6 +84,85 @@
 | 标准差 | — | — |
 | 改进幅度 | — | >7%（预实验） |
 
+## 🧪 Simulink 仿真扩展 — DC电机PID优化
+
+本项目已扩展至**控制系统仿真**领域：使用 MPIA/IA 优化**直流电机 PID 控制器参数**。
+
+### 背景
+
+将优化算法的目标函数从数学函数（Rastrigin）替换为**控制系统的 ITAE 性能指标**，实现了"智能优化 → 控制器参数整定"的完整闭环。
+
+### 被控对象
+
+直流电机传递函数（电枢控制式）：
+
+```math
+G(s) = 10000/(s² + 10s)
+```
+
+控制目标：单位阶跃响应 → 最小化 ITAE（超调小、上升快、无稳态误差）。
+
+### 新增文件
+
+```text
+├── code/
+│   ├── pid_fitness.m           # 适应度函数：PID仿真 → ITAE计算
+│   ├── PID_IA.m                # 标准IA优化PID（包装函数）
+│   ├── PID_MPIA.m              # 多种群IA优化PID（包装函数）
+│   ├── main_simulink.m         # 主对比脚本：ZN vs IA vs MPIA
+│   └── build_simulink_model.m  # 程序化构建Simulink模型（可选）
+```
+
+### 运行方式
+
+#### 方式1: Simulink 模式（需 Simulink）
+
+```matlab
+addpath('code/')
+build_simulink_model    % 构建DC_Motor_Model.slx
+main_simulink           % 运行对比实验
+```
+
+#### 方式2: 纯脚本模式（无需 Simulink）
+
+```matlab
+addpath('code/')
+main_simulink           % 自动检测环境，降级到tf/step或RK4仿真
+```
+
+程序将自动检测可用仿真后端：**Simulink > Control System Toolbox > RK4手动仿真**。
+
+### 三方对比
+
+| 方法 | 描述 | ITAE（示意） |
+|------|------|:----------:|
+| 🔧 **Ziegler-Nichols** | 经典工程整定法（临界增益+周期） | — |
+| 🧬 **标准IA** | 单种群免疫算法，30次独立优化 | — |
+| 🧩 **多种群IA (MPIA)** | K=5子群+分层变异+迁移 | — |
+
+### 输出图表
+
+运行 `main_simulink` 生成 4 张对比图：
+
+| 图表 | 内容 |
+|------|------|
+| `阶跃响应对比.png` | 三种方法阶跃响应 + 超调区域放大 |
+| `PID收敛曲线对比.png` | IA vs MPIA 最优/平均ITAE收敛 |
+| `PID箱线图对比.png` | 30次运行ITAE分布箱线图 |
+| `PID参数分布.png` | Kp-Ki-Kd 二维散点 + ITAE相关性 |
+
+### 架构设计
+
+优化算法（IA/MPIA）通过 `params.obj_func` 接收自定义目标函数，**无需修改算法核心代码**（向后兼容）：
+
+```matlab
+% 纯优化（原有）
+params_rastrigin.obj_func = @Rastrigin;  % 默认
+
+% PID优化（新增）
+params_pid.obj_func = @pid_fitness;
+```
+
 ## ⚙️ 参数配置
 
 可在 `main.m` 中修改以下参数：

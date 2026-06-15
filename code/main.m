@@ -83,9 +83,6 @@ else
     fprintf('  结论: 不能拒绝H0，两种算法无显著性差异\n');
 end
 
-%% 收敛曲线图
-figure('Position', [50, 50, 1400, 550], 'Color', 'w');
-
 % 计算均值和标准差
 ia_best_mean   = mean(ia_conv_best, 2);
 ia_best_std    = std(ia_conv_best, 0, 2);
@@ -178,10 +175,8 @@ function [p, h] = manual_ranksum(x, y, alpha)
     n1 = length(x); n2 = length(y);
     combined = [x; y];
     group = [ones(n1,1); 2*ones(n2,1)]; 
-    [~, idx] = sort(combined);
-    ranks = zeros(size(combined));
-    ranks(idx) = 1:length(combined);
     [sorted_vals, sort_idx] = sort(combined);
+    ranks = zeros(size(combined));
     tie_ranks = zeros(size(sorted_vals));
     i = 1;
     while i <= length(sorted_vals)

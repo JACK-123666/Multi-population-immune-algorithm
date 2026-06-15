@@ -11,11 +11,12 @@ function [best_x, best_f, conv_best, conv_avg] = IA(D, N, T, bounds, params)
     clone_rate   = getField(params, 'clone_rate',   10);
     mutate_scale = getField(params, 'mutate_scale', 0.5);
     replace_rate = getField(params, 'replace_rate', 0.05);
+    obj_func = getField(params, 'obj_func', @Rastrigin);
     lb = bounds(1);  ub = bounds(2);
 
     % 初始化种群
     pop = lb + (ub - lb) * rand(N, D);
-    fitness = Rastrigin(pop);
+    fitness = obj_func(pop);
     conv_best = zeros(T, 1);  conv_avg = zeros(T, 1);
     [global_best_f, idx] = min(fitness);
     global_best_x = pop(idx, :);
@@ -54,7 +55,7 @@ function [best_x, best_f, conv_best, conv_avg] = IA(D, N, T, bounds, params)
         end
 
         % 4. 评估克隆体
-        clone_fitness = Rastrigin(mutated);
+        clone_fitness = obj_func(mutated);
 
         % 5. 克隆家族内精英选择
         new_pop = zeros(N, D);  new_fitness = zeros(N, 1);
@@ -82,7 +83,7 @@ function [best_x, best_f, conv_best, conv_avg] = IA(D, N, T, bounds, params)
             [~, wi] = sort(new_fitness, 'descend');
             for j = 1:n_replace
                 new_pop(wi(j), :) = lb + (ub - lb) * rand(1, D);
-                new_fitness(wi(j)) = Rastrigin(new_pop(wi(j), :));
+                new_fitness(wi(j)) = obj_func(new_pop(wi(j), :));
             end
         end
 
